@@ -1,0 +1,2 @@
+*.7z -delta
+*.7z.* -delta
