@@ -1,0 +1,84 @@
+name: Upload database
+
+# This GitHub Actions workflow checkouts the PostGIS database dump
+# which was generated on @whkchow's computer.  The 7-Zip archive
+# in 2000 MiB volumes, which were split into 100 MiB chunks for
+# storage in Git repo, are joined and uploaded as release assets
+# (for a tagged release) on GitHub.
+
+on:
+  push:
+#   branches:
+#     - '**'
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag"
+        required: true
+
+concurrency: prevent-race-condition
+
+jobs:
+  upload-opendrr-database:
+    runs-on: ubuntu-22.04
+    env:
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+    steps:
+      - name: Make more room by deleting unused software
+        if: ${{ github.event_name != 'schedule' }}
+        run: |
+          set -x
+          df -h
+          du -csh /usr/share/dotnet
+          du -csh /usr/local/lib/android
+          sudo eatmydata rm -f -r /usr/share/dotnet
+          sudo eatmydata rm -f -r /usr/local/lib/android
+          df -h
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install 7-Zip
+        run: |
+          sudo eatmydata apt update
+          sudo eatmydata apt install -y 7zip
+          sudo eatmydata apt clean
+
+      - name: Join 100 MiB chunks into 2000 MiB 7-Zip volumes
+        run: |
+          for i in *.7z.[0-9][0-9][0-9].aa; do
+            j=$(basename $i .aa)
+            cat $j.?? > $j
+            rm $j.[a-z][a-z]
+          done
+
+      - name: Extract opendrr-boundaries-db.dump for checking
+        run: 7zz x opendrr-boundaries-db.7z.001
+
+      - name: Verify SHA256 checksum of opendrr-boundaries-db.dump
+        run: |
+          sha256sum -c opendrr-boundaries-db.dump.sha256sum
+          rm -f -v opendrr-boundaries-db.dump
+
+      - name: "Upload database dump as GitHub artifact"
+        uses: actions/upload-artifact@v3
+        if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+        with:
+          name: opendrr-boundaries-db
+          path: |
+            *.7z.[0-9][0-9][0-9]
+            *.sha256sum
+          if-no-files-found: error
+
+      - name: "Upload database dump as release assets using xresloader/upload-to-github-release@v1"
+        uses: xresloader/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file: "*.7z.[0-9][0-9][0-9];*.sha256sum"
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.release_tag || '' }}
+          tags: true
+          draft: false
