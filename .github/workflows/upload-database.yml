@@ -47,18 +47,23 @@ jobs:
           sudo eatmydata apt install -y 7zip
           sudo eatmydata apt clean
 
-      - name: Join 100 MiB chunks into 2000 MiB 7-Zip volumes
+      - name: Join 100 MiB chunks into original 2000 MiB 7-Zip volumes
         run: |
           for i in *.7z.[0-9][0-9][0-9].aa; do
             j=$(basename $i .aa)
             cat $j.?? > $j
             rm $j.[a-z][a-z]
           done
+          ls -l *.7z.[0-9][0-9][0-9]
 
-      - name: Extract opendrr-boundaries-db.dump for checking
+      - name: Verify SHA-256 checksum of opendrr-boundaries-db.7z.[0-9][0-9][0-9]
+        run: |
+          sha256sum -c opendrr-boundaries-db.7z.sha256sum
+
+      - name: Extract opendrr-boundaries-db.dump
         run: 7zz x opendrr-boundaries-db.7z.001
 
-      - name: Verify SHA256 checksum of opendrr-boundaries-db.dump
+      - name: Verify SHA-256 checksum of opendrr-boundaries-db.dump
         run: |
           sha256sum -c opendrr-boundaries-db.dump.sha256sum
           rm -f -v opendrr-boundaries-db.dump
