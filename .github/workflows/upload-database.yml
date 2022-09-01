@@ -68,16 +68,6 @@ jobs:
           sha256sum -c opendrr-boundaries-db.dump.sha256sum
           rm -f -v opendrr-boundaries-db.dump
 
-      - name: "Upload database dump as GitHub artifact"
-        uses: actions/upload-artifact@v3
-        if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
-        with:
-          name: opendrr-boundaries-db
-          path: |
-            *.7z.[0-9][0-9][0-9]
-            *.sha256sum
-          if-no-files-found: error
-
       - name: "Upload database dump as release assets using xresloader/upload-to-github-release@v1"
         uses: xresloader/upload-to-github-release@v1
         env:
