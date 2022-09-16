@@ -33,3 +33,11 @@
 * SHA-256 checksum: 29d88fdae3ea5be7e0f70c800c5e91c69fff4764719c8275e7638e1b87a833ab
 * Creation date: 2022-08-31
 * From archive: `opendrr-boundaries_with_full_hexgrid1km_remove_PT_aug2022.7z`
+
+### v1.4.4-beta+20220913 (pushed 2022-09-16)
+
+* Original filename: `opendrr-boundaries_with_full_hexgrid1km_remove_PT_sept2022.sql`
+* File size: 8,805,403,234 bytes
+* SHA-256 checksum: 29d88fdae3ea5be7e0f70c800c5e91c69fff4764719c8275e7638e1b87a833ab
+* Creation date: 2022-09-13
+* From archive: `opendrr-boundaries_with_full_hexgrid1km_remove_PT_sep2022.7z`
